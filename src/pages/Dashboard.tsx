@@ -1,10 +1,11 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { Pagination, Table } from "antd";
 import moment from "moment";
 import { useGetAllInvoicesQuery } from "../redux/feature/Invoice/invoice.api";
 import { Link } from "react-router-dom";
+import { selectCurrentUser } from "../redux/feature/auth/authSlice";
+import { useAppSelector } from "../redux/hooks";
 
 const Dashboard = () => {
     const [dateRange, setDateRange] = useState({
@@ -12,6 +13,7 @@ const Dashboard = () => {
         endDate: moment().format("YYYY-MM-DD"),
     });
     const [page, setPage] = useState(1);
+    const [filteredData, setFilteredData] = useState<any[]>([]);
 
     const {
         data: invoiceData,
@@ -23,20 +25,36 @@ const Dashboard = () => {
         page: page,
     });
 
+    const currentUser = useAppSelector(selectCurrentUser);
+    console.log(currentUser);
+
+    useEffect(() => {
+        if (invoiceData?.data) {
+            if (currentUser?.role === "seller") {
+                const data = invoiceData.data.filter(
+                    (item: any) => item.sellerId._id === currentUser.id,
+                );
+                setFilteredData(data);
+            } else {
+                setFilteredData(invoiceData.data);
+            }
+        }
+    }, [invoiceData, currentUser]);
+
     const metaData = invoiceData?.meta;
 
     const [totalSell, setTotalSell] = useState(0);
     const [historyType, setHistoryType] = useState("today");
 
     useEffect(() => {
-        if (invoiceData && !isLoading && !isFetching) {
+        if (filteredData && !isLoading && !isFetching) {
             let total = 0;
-            invoiceData.data.forEach((item: any) => {
+            filteredData.forEach((item: any) => {
                 total += item.totalAmountAfterDiscount;
             });
             setTotalSell(total);
         }
-    }, [isLoading, isFetching, historyType, invoiceData]);
+    }, [isLoading, isFetching, historyType, filteredData]);
 
     const handleHistoryType = (type: string) => {
         setHistoryType(type);
@@ -68,7 +86,7 @@ const Dashboard = () => {
         }
     };
 
-    const tableData = invoiceData?.data.map((item: any) => {
+    const tableData = filteredData.map((item: any) => {
         return {
             key: item._id,
             customer: item.buyerName,

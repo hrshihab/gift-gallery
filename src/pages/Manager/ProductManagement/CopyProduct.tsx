@@ -38,7 +38,6 @@ const CopyProduct = () => {
     const { data: productData, isLoading: isProductDataLoading } =
         useGetProductByIdQuery(param.productId);
 
-    // console.log(productData);
 
     const { data: categoryData, isLoading: isCategoryDataLoading } =
         useGetAllCategoryQuery(undefined);
@@ -99,7 +98,6 @@ const CopyProduct = () => {
             occasion: data.occasion,
             theme: data.theme,
         };
-        console.log(data);
 
         const formData = new FormData();
         formData.append("data", JSON.stringify(productInfo));

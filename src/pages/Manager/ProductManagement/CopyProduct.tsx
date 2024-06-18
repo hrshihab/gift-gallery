@@ -38,7 +38,6 @@ const CopyProduct = () => {
     const { data: productData, isLoading: isProductDataLoading } =
         useGetProductByIdQuery(param.productId);
 
-
     const { data: categoryData, isLoading: isCategoryDataLoading } =
         useGetAllCategoryQuery(undefined);
     const { data: brandData, isLoading: isBrandDataLoading } =

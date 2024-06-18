@@ -1,8 +1,8 @@
 import { MdDashboard, MdShoppingCart } from "react-icons/md";
-import Coupons from "../pages/Coupons";
 import GiftProducts from "../pages/GiftProducts";
 import Dashboard from "../pages/Dashboard";
 import { RiCoupon2Fill } from "react-icons/ri";
+import Coupons from "../pages/Coupons";
 
 export const sellerPaths = [
     {

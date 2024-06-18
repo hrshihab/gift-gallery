@@ -11,6 +11,7 @@ import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
 import Dashboard from "../pages/Dashboard";
 import Invoice from "../pages/invoice";
+import { sellerPaths } from "./seller.routes";
 
 const router = createBrowserRouter([
     {
@@ -56,6 +57,16 @@ const router = createBrowserRouter([
             </ProtectedRoute>
         ),
         children: routeGenerator(managerPaths),
+    },
+
+    {
+        path: "/seller",
+        element: (
+            <ProtectedRoute role="seller">
+                <App />
+            </ProtectedRoute>
+        ),
+        children: routeGenerator(sellerPaths),
     },
     {
         path: "/login",

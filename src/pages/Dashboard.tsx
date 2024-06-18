@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Pagination, Table } from "antd";
 import moment from "moment";
 import { useGetAllInvoicesQuery } from "../redux/feature/Invoice/invoice.api";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
     const [dateRange, setDateRange] = useState({
@@ -21,7 +22,6 @@ const Dashboard = () => {
         endDate: dateRange.endDate,
         page: page,
     });
-    //console.log(invoiceData.data);
 
     const metaData = invoiceData?.meta;
 
@@ -32,7 +32,7 @@ const Dashboard = () => {
         if (invoiceData && !isLoading && !isFetching) {
             let total = 0;
             invoiceData.data.forEach((item: any) => {
-                total += item.totalAmount;
+                total += item.totalAmountAfterDiscount;
             });
             setTotalSell(total);
         }
@@ -73,13 +73,13 @@ const Dashboard = () => {
             key: item._id,
             customer: item.buyerName,
             products: item.products,
-            price: item.totalAmount,
+            price: item.totalAmountAfterDiscount,
         };
     });
 
     const columns = [
         {
-            title: "Transaction No.",
+            title: "Invoice No.",
             dataIndex: "key",
             key: "key",
         },
@@ -111,6 +111,18 @@ const Dashboard = () => {
             key: "date",
             render: (_text: any, record: any) => (
                 <div>{moment(record.createdAt).format("YYYY-MM-DD")}</div>
+            ),
+        },
+        {
+            title: "Action",
+            dataIndex: "action",
+            key: "action",
+            render: (_text: any, record: any) => (
+                <div>
+                    <Link to={`/products/cart/check-out/invoice/${record.key}`}>
+                        <button className="button-primary">View Invoice</button>
+                    </Link>
+                </div>
             ),
         },
     ];

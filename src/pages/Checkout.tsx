@@ -5,7 +5,7 @@ import GForm from "../components/form/GForm";
 import GInput from "../components/form/GInput";
 import { Table } from "antd";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { calculateTotalAmount } from "../utils/cart";
+import { calculateDiscount, calculateTotalAmount } from "../utils/cart";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { checkoutSchema } from "../Schemas/checkout.schema";
 import { logout, useCurrentToken } from "../redux/feature/auth/authSlice";
@@ -13,14 +13,18 @@ import { verifyToken } from "../utils/verifyToken";
 import { TUser } from "../types";
 import { useCreateInvoiceMutation } from "../redux/feature/Invoice/invoice.api";
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
 import { clearCart } from "../redux/feature/cart/cartSlice";
+import { removeCoupon } from "../redux/feature/coupon/couponSlice";
 import { Link } from "react-router-dom";
 
 const Checkout = () => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
     const token = useAppSelector(useCurrentToken);
     const cartItems = useAppSelector((state) => state.cart.cartItems);
+    const couponDetails = useAppSelector((state) => state.coupon.couponDetails);
 
     const [createInvoice] = useCreateInvoiceMutation();
 
@@ -89,7 +93,21 @@ const Checkout = () => {
 
         const invoiceData = {
             totalAmount: calculateTotalAmount(cartItems),
-
+            discount: couponDetails
+                ? calculateDiscount(
+                      calculateTotalAmount(cartItems),
+                      couponDetails,
+                  )
+                : 0,
+            totalAmountAfterDiscount:
+                calculateTotalAmount(cartItems) -
+                (couponDetails
+                    ? calculateDiscount(
+                          calculateTotalAmount(cartItems),
+                          couponDetails,
+                      )
+                    : 0),
+            couponCode: couponDetails?.code || "",
             buyerName: data.buyerName,
             products: cartItems.map((item) => {
                 return {
@@ -111,6 +129,8 @@ const Checkout = () => {
             if (res.success) {
                 toast.success("Products Sold Successfully", { id: toastId });
                 dispatch(clearCart());
+                dispatch(removeCoupon());
+                navigate(`/products/cart/check-out/invoice/${res.data._id}`);
             } else {
                 toast.error("Failed to sell products", { id: toastId });
             }
@@ -157,13 +177,48 @@ const Checkout = () => {
                                         )}
                                     </span>
                                 </div>
-
+                                <div className="flex justify-between">
+                                    <span className="font-bold">
+                                        Discount Code
+                                    </span>
+                                    <span>{couponDetails?.code}</span>
+                                </div>
                                 <hr className="my-2 border-[1px]" />
                                 <div className="flex justify-between">
                                     <span className="font-bold">Subtotal</span>
                                     <span>
                                         &#2547; {}
                                         {calculateTotalAmount(cartItems)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="font-bold">Discount</span>
+                                    <span>
+                                        &#2547; {}
+                                        {couponDetails
+                                            ? calculateDiscount(
+                                                  calculateTotalAmount(
+                                                      cartItems,
+                                                  ),
+                                                  couponDetails,
+                                              )
+                                            : 0}
+                                    </span>
+                                </div>
+                                <hr className="my-2 border-[1px]" />
+                                <div className="flex justify-between">
+                                    <span className="font-bold">Total</span>
+                                    <span className="font-bold">
+                                        &#2547; {}
+                                        {calculateTotalAmount(cartItems) -
+                                            (couponDetails
+                                                ? calculateDiscount(
+                                                      calculateTotalAmount(
+                                                          cartItems,
+                                                      ),
+                                                      couponDetails,
+                                                  )
+                                                : 0)}
                                     </span>
                                 </div>
                             </div>

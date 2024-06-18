@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./feature/auth/authSlice";
 import productReducer from "./feature/product/productSlice";
 import cartReducer from "./feature/cart/cartSlice";
+import couponReducer from "./feature/coupon/couponSlice";
 import { baseApi } from "./api/baseApi";
 import {
     persistReducer,
@@ -28,6 +29,7 @@ export const store = configureStore({
         auth: persistedAuthReducer,
         product: productReducer,
         cart: cartReducer,
+        coupon: couponReducer,
     },
     middleware: (getDefaultMiddlewares) =>
         getDefaultMiddlewares({

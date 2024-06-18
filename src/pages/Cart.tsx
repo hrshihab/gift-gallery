@@ -7,16 +7,57 @@ import {
     decreaseCart,
     removeFromCart,
 } from "../redux/feature/cart/cartSlice";
-
+import { TCoupon, setCoupon } from "../redux/feature/coupon/couponSlice";
+import { Input } from "antd";
+import { useState } from "react";
+import { useGetCouponByNameMutation } from "../redux/feature/coupon/couponManagement.api";
 import { useNavigate } from "react-router";
 
 const calculateTotalAmount = (cartItems: TCartItem[]) => {
     return cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 };
 
+const calculateDiscount = (totalAmount: number, coupon: TCoupon) => {
+    if (!coupon) {
+        return 0;
+    }
+
+    const currentDate = new Date().toISOString().split("T")[0];
+    if (coupon.startDate > currentDate || coupon.expiryDate < currentDate) {
+        return 0;
+    }
+
+    let discountAmount = 0;
+    if (coupon.minOrder > totalAmount) {
+        discountAmount = 0;
+    } else if (coupon.haveMaxDiscount === true && coupon.maxDiscount) {
+        if (coupon.discountType === "percentage") {
+            const tempDiscountAmount =
+                (totalAmount * coupon.discountAmount) / 100;
+
+            if (tempDiscountAmount > coupon.maxDiscount) {
+                discountAmount = coupon.maxDiscount;
+            } else {
+                discountAmount = tempDiscountAmount;
+            }
+        } else {
+            discountAmount = coupon.discountAmount;
+        }
+    } else {
+        if (coupon.discountType === "percentage") {
+            discountAmount = (totalAmount * coupon.discountAmount) / 100;
+        } else {
+            discountAmount = coupon.discountAmount;
+        }
+    }
+
+    return discountAmount;
+};
+
 const Cart = () => {
     const navigate = useNavigate();
     const cart = useAppSelector((state) => state.cart);
+    const coupon = useAppSelector((state) => state.coupon);
     const dispatch = useAppDispatch();
 
     const handleAddToCart = (product: TCartItem) => {
@@ -32,6 +73,45 @@ const Cart = () => {
 
     const handleRemoveFromCart = (product: TCartItem) => {
         dispatch(removeFromCart(product));
+    };
+
+    const [couponCode, setCouponCode] = useState("");
+    const [isCheckedCoupon, setIsCheckedCoupon] = useState(false);
+    const [isCouponValid, setIsCouponValid] = useState(false);
+    const [couponValidation] = useGetCouponByNameMutation();
+
+    const couponDetailsHandler = async (couponCode: string) => {
+        if (!couponCode || couponCode == "") return;
+
+        try {
+            const res = await couponValidation({ code: couponCode }).unwrap();
+            if (res.success === true) {
+                dispatch(
+                    setCoupon({
+                        couponCode: res.data.code,
+                        couponDetails: res.data,
+                    }),
+                );
+                setIsCouponValid(true);
+            } else {
+                dispatch(
+                    setCoupon({
+                        couponCode: "",
+                        couponDetails: null,
+                    }),
+                );
+                setIsCouponValid(false);
+            }
+        } catch (error: any) {
+            dispatch(
+                setCoupon({
+                    couponCode: "",
+                    couponDetails: null,
+                }),
+            );
+            setIsCouponValid(false);
+        }
+        setIsCheckedCoupon(true);
     };
 
     return (
@@ -138,6 +218,50 @@ const Cart = () => {
                         )}
                     </div>
                     <div className="bg-[--primary-color] px-5 py-10 rounded md:w-[400px]">
+                        <div className="flex justify-between">
+                            <span>Discount</span>
+                        </div>
+                        <div className="bg-white rounded-lg mt-1 mb-5">
+                            <div className="flex">
+                                <Input
+                                    type="text"
+                                    placeholder="Enter your coupon code"
+                                    className="w-full border-[1px] rounded-l-md rounded-r-none"
+                                    value={couponCode}
+                                    onChange={(e) =>
+                                        setCouponCode(e.target.value)
+                                    }
+                                />
+                                <button
+                                    onClick={() => {
+                                        couponDetailsHandler(couponCode);
+                                    }}
+                                    className="button-primary w-[200px] !rounded-l-none !py-2"
+                                >
+                                    Apply Discount
+                                </button>
+                            </div>
+                            {isCheckedCoupon === true &&
+                                isCouponValid === false && (
+                                    <span className="text-red-500">
+                                        Invalid Coupon
+                                    </span>
+                                )}
+                        </div>
+                        <div className="mt-1 mb-7">
+                            <small className="text-[13px]">
+                                You can add a discount code at the checkout
+                            </small>
+                        </div>
+                        <div>
+                            {coupon.couponCode &&
+                                calculateTotalAmount(cart.cartItems) > 0 && (
+                                    <div className="flex justify-between">
+                                        <span>Discount Code</span>
+                                        <span>{coupon.couponCode}</span>
+                                    </div>
+                                )}
+                        </div>
                         <hr className="border-[--secondary-color] my-3" />
                         <div className="flex justify-between">
                             <span>Total Price</span>
@@ -148,10 +272,35 @@ const Cart = () => {
                                 )}
                             </span>
                         </div>
-
+                        <div className="flex justify-between">
+                            <span>Discount</span>
+                            <span>
+                                &#2547;{" "}
+                                {coupon.couponDetails
+                                    ? calculateDiscount(
+                                          calculateTotalAmount(cart.cartItems),
+                                          coupon.couponDetails,
+                                      )
+                                    : 0}
+                            </span>
+                        </div>
                         <hr className="border-[--secondary-color] my-3" />
                         <div className="flex justify-between font-extrabold text-[16px]">
                             <span className="font-bold">Total</span>
+                            <span className="font-bold">
+                                &#2547;{" "}
+                                {Math.round(
+                                    calculateTotalAmount(cart.cartItems) -
+                                        (coupon.couponDetails
+                                            ? calculateDiscount(
+                                                  calculateTotalAmount(
+                                                      cart.cartItems,
+                                                  ),
+                                                  coupon.couponDetails,
+                                              )
+                                            : 0),
+                                ).toFixed(2)}
+                            </span>
                         </div>
                         <div className="flex justify-center mt-10">
                             <button

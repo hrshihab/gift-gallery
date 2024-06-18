@@ -188,6 +188,17 @@ const ProductListView = ({ productData }: TProductDataProps) => {
                         <div
                             className={`${!user !== null && (user as TUser)?.role === "seller" && "hidden"}`}
                         >
+                            <Link
+                                to={`/${(user as TUser)?.role}/add-gift/copied/${product._id}`}
+                            >
+                                <button className="button-primary font-medium">
+                                    Duplicate
+                                </button>
+                            </Link>
+                        </div>
+                        <div
+                            className={`${!user !== null && (user as TUser)?.role === "seller" && "hidden"}`}
+                        >
                             <ProductDeleteModal
                                 deleteProductsList={[product._id]}
                                 singleDelete={true}

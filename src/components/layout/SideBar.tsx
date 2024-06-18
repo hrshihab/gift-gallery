@@ -12,9 +12,11 @@ import SidebarItemWithOutSubMenu from "./SidebarItemWithOutSubMenu";
 import SidebarItemWithSubMenu from "./SidebarItemWithSubMenu";
 import { useMediaQuery } from "react-responsive";
 import NavBar from "./NavBar";
+import { sellerPaths } from "../../routes/seller.routes";
 
 const userRole = {
     MANAGER: "manager",
+    SELLER: "seller",
 };
 
 const SideBar = () => {
@@ -38,6 +40,9 @@ const SideBar = () => {
                 managerPaths,
                 userRole.MANAGER,
             );
+            break;
+        case userRole.SELLER:
+            sideBarItems = sideBarItemsGenerator(sellerPaths, userRole.SELLER);
             break;
 
         default:

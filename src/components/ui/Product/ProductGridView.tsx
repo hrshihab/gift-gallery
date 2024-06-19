@@ -1,20 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Link } from "react-router-dom";
-import { TProduct, TUser } from "../../../types";
+import { TProduct } from "../../../types";
 import ProductSellModal from "./ProductSellModal";
-import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
-import { useCurrentToken } from "../../../redux/feature/auth/authSlice";
-import { verifyToken } from "../../../utils/verifyToken";
+import { useAppDispatch } from "../../../redux/hooks";
+
 import { addToCart } from "../../../redux/feature/cart/cartSlice";
 
 type TProductDataProps = {
-    productData: [TProduct];
+    productData: TProduct[];
 };
 
 const ProductGridView = ({ productData }: TProductDataProps) => {
     const dispatch = useAppDispatch();
-    const token = useAppSelector(useCurrentToken);
-    const user = token ? verifyToken(token) : null;
 
     const handleAddToCart = (product: TProduct) => {
         dispatch(
@@ -31,17 +26,17 @@ const ProductGridView = ({ productData }: TProductDataProps) => {
 
     return (
         <div className="flex justify-center w-full">
-            <div className="flex justify-start flex-wrap gap-2 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
                 {productData.length > 0 ? (
                     productData.map((product) => (
-                        <div key={product._id} className="w-[300px]">
+                        <div key={product._id} className="w-full">
                             <div className="flex flex-col justify-center gap-2 border-2 border-gray-200 rounded-lg w-full bg-[var(--primary-color)] p-4">
                                 <div className="w-full h-[200px]">
                                     {product.imageURL !== "" ? (
                                         <img
                                             src={product.imageURL}
                                             alt={product.name}
-                                            className="h-[200px] w-[300px] rounded-lg "
+                                            className="h-full w-full object-cover rounded-lg"
                                         />
                                     ) : (
                                         <div className="h-full w-full flex justify-center items-center bg-gray-200">
@@ -65,36 +60,14 @@ const ProductGridView = ({ productData }: TProductDataProps) => {
                                         Quantity: {product.quantity}
                                     </p>
                                 </div>
+
                                 <div className="flex flex-row justify-between w-full gap-1">
-                                    <div className="w-full">
+                                    <div className="w-full ">
                                         <ProductSellModal
                                             productInfo={product}
                                         />
                                     </div>
-                                    <div className={`hidden`}>
-                                        <Link
-                                            to={`/${(user as TUser)?.role}/update-gift/${product._id}`}
-                                        >
-                                            <button className="button-primary">
-                                                <svg
-                                                    className="size-5"
-                                                    fill="none"
-                                                    strokeWidth="1.5"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                                                    ></path>
-                                                </svg>
-                                            </button>
-                                        </Link>
-                                    </div>
                                 </div>
-
                                 <div>
                                     <button
                                         onClick={() => handleAddToCart(product)}

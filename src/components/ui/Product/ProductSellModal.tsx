@@ -3,7 +3,7 @@ import { FieldValues, SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
 import { useState } from "react";
 import { TProduct } from "../../../types";
-import { Button, Modal } from "antd";
+import { Button, Col, Input, Modal, Row } from "antd";
 import GForm from "../../form/GForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sellProductSchema } from "../../../Schemas/sell.schema";
@@ -13,12 +13,20 @@ import { logout, useCurrentToken } from "../../../redux/feature/auth/authSlice";
 import { verifyToken } from "../../../utils/verifyToken";
 import moment from "moment";
 import GDatePickerWithDefaultValue from "../../form/GDatePickerWithDefaultValue";
+import {
+    useGetCouponByNameMutation,
+    useVerifyCouponMutation,
+} from "../../../redux/feature/coupon/couponManagement.api";
+import { setCoupon } from "../../../redux/feature/coupon/couponSlice";
 import { addToCart } from "../../../redux/feature/cart/cartSlice";
 import { useNavigate } from "react-router";
 
 const ProductSellModal = ({ productInfo }: { productInfo: TProduct }) => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+
+    const [couponInfo] = useGetCouponByNameMutation();
+    const [verifyCoupon] = useVerifyCouponMutation();
 
     const token = useAppSelector(useCurrentToken);
     const user = verifyToken(token as string) || {};
@@ -27,6 +35,7 @@ const ProductSellModal = ({ productInfo }: { productInfo: TProduct }) => {
         dispatch(logout());
     }
 
+    const [couponCode, setCouponCode] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const showModal = () => {
@@ -35,42 +44,43 @@ const ProductSellModal = ({ productInfo }: { productInfo: TProduct }) => {
 
     const handleCancel = () => {
         setIsModalOpen(false);
+        setCouponCode("");
     };
 
-    // const verifyCouponHandler = async (
-    //     couponCode: string,
-    //     orderAmount: number,
-    // ) => {
-    //     if (!couponCode || couponCode == "" || !orderAmount || orderAmount < 0)
-    //         return false;
-    //     const toastId = toast.loading("Verifying coupon ...", {
-    //         position: "top-right",
-    //     });
-    //     try {
-    //         const res = await verifyCoupon({
-    //             code: couponCode,
-    //             orderAmount: orderAmount,
-    //         }).unwrap();
-    //         if (res.success === true) {
-    //             toast.success("Valid Coupon", {
-    //                 id: toastId,
-    //                 duration: 2000,
-    //             });
-    //             return res;
-    //         } else {
-    //             toast.error("Invalid Coupon", {
-    //                 id: toastId,
-    //                 duration: 2000,
-    //             });
-    //         }
-    //     } catch (error: any) {
-    //         toast.error(error.data.message || "Failed to verify coupon", {
-    //             id: toastId,
-    //             duration: 2000,
-    //         });
-    //     }
-    //     return;
-    // };
+    const verifyCouponHandler = async (
+        couponCode: string,
+        orderAmount: number,
+    ) => {
+        if (!couponCode || couponCode == "" || !orderAmount || orderAmount < 0)
+            return false;
+        const toastId = toast.loading("Verifying coupon ...", {
+            position: "top-right",
+        });
+        try {
+            const res = await verifyCoupon({
+                code: couponCode,
+                orderAmount: orderAmount,
+            }).unwrap();
+            if (res.success === true) {
+                toast.success("Valid Coupon", {
+                    id: toastId,
+                    duration: 2000,
+                });
+                return res;
+            } else {
+                toast.error("Invalid Coupon", {
+                    id: toastId,
+                    duration: 2000,
+                });
+            }
+        } catch (error: any) {
+            toast.error(error.data.message || "Failed to verify coupon", {
+                id: toastId,
+                duration: 2000,
+            });
+        }
+        return;
+    };
 
     const onSubmit: SubmitHandler<FieldValues> = async (data) => {
         if (data.quantity > productInfo.quantity) {
@@ -83,6 +93,49 @@ const ProductSellModal = ({ productInfo }: { productInfo: TProduct }) => {
                 },
             );
             return;
+        }
+
+        if (couponCode !== "") {
+            const toastId = toast.loading("Verifying coupon ...", {
+                position: "top-center",
+            });
+            try {
+                const res = await couponInfo({ code: couponCode }).unwrap();
+                if (res.success === true) {
+                    dispatch(
+                        setCoupon({
+                            couponCode: res.data.code,
+                            couponDetails: res.data,
+                        }),
+                    );
+                    toast.success("Valid Coupon", {
+                        id: toastId,
+                        duration: 2000,
+                    });
+                } else {
+                    dispatch(
+                        setCoupon({
+                            couponCode: "",
+                            couponDetails: null,
+                        }),
+                    );
+                    toast.error("Invalid Coupon", {
+                        id: toastId,
+                        duration: 2000,
+                    });
+                }
+            } catch (error: any) {
+                dispatch(
+                    setCoupon({
+                        couponCode: "",
+                        couponDetails: null,
+                    }),
+                );
+                toast.error(error.data.message || "Failed to verify coupon", {
+                    id: toastId,
+                    duration: 2000,
+                });
+            }
         }
 
         dispatch(
@@ -146,7 +199,35 @@ const ProductSellModal = ({ productInfo }: { productInfo: TProduct }) => {
                             disabled={true}
                             defaultValue={moment().format("YYYY-MM-DD")}
                         />
-
+                        <div>
+                            <p className="text-[14px] font-medium mb-2">
+                                Apply Promo Code
+                            </p>
+                            <Row>
+                                <Col span={18}>
+                                    <Input
+                                        type="text"
+                                        value={couponCode}
+                                        placeholder="Enter Coupon Code"
+                                        onChange={(e) =>
+                                            setCouponCode(e.target.value)
+                                        }
+                                        className="w-full rounded-r-none rounded-l-md"
+                                    />
+                                </Col>
+                                <Col span={6}>
+                                    <Button
+                                        htmlType="button"
+                                        className="bg-[var(--secondary-color)] min-w-[100px] text-[var(--primary-color)] m-0 rounded-l-none rounded-r-md"
+                                        onClick={() =>
+                                            verifyCouponHandler(couponCode, 20)
+                                        }
+                                    >
+                                        Verify Coupon
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </div>
                         <div className="flex justify-center gap-3 mt-10 mb-5">
                             <Button
                                 onClick={() => {

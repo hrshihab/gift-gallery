@@ -3,7 +3,11 @@ import CopyProduct from "../pages/Manager/ProductManagement/CopyProduct";
 import UpdateProduct from "../pages/Manager/ProductManagement/UpdateProduct";
 import Dashboard from "../pages/Dashboard";
 import GiftProducts from "../pages/GiftProducts";
-import { MdDashboard, MdShoppingCart } from "react-icons/md";
+import {
+    MdAddBusiness,
+    MdDashboard,
+    MdOutlineEditCalendar,
+} from "react-icons/md";
 import { FaGift } from "react-icons/fa6";
 import ManageGiftProducts from "../pages/ManageGiftProduct";
 
@@ -20,20 +24,25 @@ export const managerPaths = [
         icon: FaGift,
         element: <GiftProducts />,
     },
+
     {
-        name: "Products",
-        icon: MdShoppingCart,
+        name: "Modify Gifts",
+        path: "manage-gifts",
+        icon: MdOutlineEditCalendar,
+        element: <ManageGiftProducts />,
+    },
+
+    {
+        name: "Add Gift",
+        path: "add-gift",
+        icon: MdAddBusiness,
+        element: <AddProduct />,
+    },
+
+    {
+        name: "Manage Gifts",
+        icon: MdOutlineEditCalendar,
         children: [
-            {
-                name: "Manage Gifts",
-                path: "manage-gifts",
-                element: <ManageGiftProducts />,
-            },
-            {
-                name: "Add Gift",
-                path: "add-gift",
-                element: <AddProduct />,
-            },
             {
                 path: "update-gift/:productId",
                 element: <UpdateProduct />,

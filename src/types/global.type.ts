@@ -42,5 +42,6 @@ export type TMenuItem = {
     menus?: {
         name: string;
         path: string;
+        icon?: any;
     }[];
 };

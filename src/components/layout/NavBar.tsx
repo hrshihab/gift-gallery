@@ -16,7 +16,7 @@ const NavBar = ({ children }: { children: React.ReactNode }) => {
             <div className="flex-1">{children}</div>
             <div className="flex gap-6">
                 <Link to="/products/cart">
-                    <div className="flex justify-center text-amber-600 items-center relative">
+                    <div className="flex justify-center text-blue-700 items-center relative">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"

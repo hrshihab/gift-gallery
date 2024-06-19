@@ -30,18 +30,22 @@ const GiftProducts = () => {
                 <h2 className="text-3xl font-bold">Gift Products</h2>
             </div>
             <div className="flex flex-col xl:flex-row xl:items-start xl:justify-center gap-3">
-                {isLoading === false ? (
-                    <div className="w-full">
-                        <ProductGridView
-                            productData={productsData?.data || []}
-                        />
+                <div className="flex flex-col md:flex-row-reverse md:gap-3 w-full">
+                    <div className="w-full md:w-auto">
+                        <FilterView />
                     </div>
-                ) : (
-                    <div className="flex justify-center items-center w-full my-10">
-                        <Spin tip="Loading"></Spin>
-                    </div>
-                )}
-                <FilterView />
+                    {isLoading === false ? (
+                        <div className="w-full">
+                            <ProductGridView
+                                productData={productsData?.data || []}
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex justify-center items-center w-full my-10">
+                            <Spin tip="Loading"></Spin>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

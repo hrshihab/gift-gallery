@@ -9,7 +9,6 @@ import { motion } from "framer-motion";
 import { IoIosArrowBack } from "react-icons/io";
 import { MdMenu } from "react-icons/md";
 import SidebarItemWithOutSubMenu from "./SidebarItemWithOutSubMenu";
-import SidebarItemWithSubMenu from "./SidebarItemWithSubMenu";
 import { useMediaQuery } from "react-responsive";
 import NavBar from "./NavBar";
 import { sellerPaths } from "../../routes/seller.routes";
@@ -144,22 +143,14 @@ const SideBar = () => {
                     </span>
                 </div>
                 {/* Menus */}
-                <div className="max-h-full">
-                    <ul className="px-2.5 text-[0.9rem] py-5 flex flex-col gap-1 font-medium mt-2 mb-20 h-full">
+                <div className="max-h-full ">
+                    <ul className="px-2.5 text-lg py-5 flex flex-col gap-1 font-bold mt-2 mb-20 h-full">
                         {sideBarItems?.map((menu) => (
                             <div key={menu.name}>
-                                {!menu?.menus ? (
-                                    <SidebarItemWithOutSubMenu
-                                        data={menu}
-                                        isOpen={isOpen}
-                                    />
-                                ) : (
-                                    <SidebarItemWithSubMenu
-                                        key={menu.name}
-                                        data={menu}
-                                        isOpen={isOpen}
-                                    />
-                                )}
+                                <SidebarItemWithOutSubMenu
+                                    data={menu}
+                                    isOpen={isOpen}
+                                />
                             </div>
                         ))}
                     </ul>
